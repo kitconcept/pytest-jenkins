@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+selenium/
+selenium-screen*
+.Python
+.vagrant/
+.vscode/
+bin/
+include/
+jenkins-cli.jar*
+lib/
+log.html
+man/
+output.xml
+pip-selfcheck.json
+playbook.retry
+report.html
