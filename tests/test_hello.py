@@ -8,7 +8,10 @@ def jenkins():
     client = docker.from_env()
 
     # docker pull jenkins/jenkins:lts
-    jenkins_image_present = len([x.tags for x in client.images.list() if 'jenkins/jenkins:lts' in x.tags]) > 0
+    jenkins_image_present = len([
+        x.tags for x in client.images.list()
+        if 'jenkins/jenkins:lts' in x.tags
+    ]) > 0
     if not jenkins_image_present:
         client.images.pull('jenkins/jenkins:lts')
 
