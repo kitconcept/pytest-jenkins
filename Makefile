@@ -25,21 +25,21 @@ all: setup
 setup: ## Build Jenkins Docker
 	@echo "$(GREEN)==> Build Jenkins Docker$(RESET)"
 	# docker pull jenkins/jenkins:lts
-	# docker build -t jenkins .
-	docker-compose -f tests/docker-compose.yml pull
-	docker-compose -f tests/docker-compose.yml build
+	docker build -t pytest-jenkins .
+	# docker-compose -f tests/docker-compose.yml pull
+	# docker-compose -f tests/docker-compose.yml build
 	virtualenv -p python3 .
 	bin/pip install -r requirements.txt
 
 .PHONY: start
 start: ## Start Jenkins Docker
 	@echo "$(GREEN)==> Start Jenkins Docker$(RESET)"
-	docker run -p 8080:8080 -p 50000:50000 --env JAVA_OPTS="-Djenkins.install.runSetupWizard=false" jenkins
+	docker run -p 8080:8080 -p 50000:50000 --env JAVA_OPTS="-Djenkins.install.runSetupWizard=false" pytest-jenkins
 
 .PHONY: stop
 stop: ## Start Jenkins Docker
 	@echo "$(GREEN)==> Start Jenkins Docker$(RESET)"
-	docker run -p 8080:8080 -p 50000:50000 --env JAVA_OPTS="-Djenkins.install.runSetupWizard=false" jenkins
+	docker run -p 8080:8080 -p 50000:50000 --env JAVA_OPTS="-Djenkins.install.runSetupWizard=false" pytest-jenkins
 
 .PHONY: test
 test: ## Run Robot Tests
@@ -51,6 +51,13 @@ clean: ## Remove old Virtualenv and creates a new one
 	@echo "Clean"
 	rm -rf bin lib include .Python
 	make setup
+
+.PHONY: docker_clean
+docker_clean: ## Delete all docker containers and images
+	# Delete all containers
+	docker rm $(docker ps -a -q) || true
+	# Delete all images
+	docker rmi $(docker images -q)
 
 .PHONY: get_roles
 get_roles: ## Getting Roles from Ansible Galaxy
