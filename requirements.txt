@@ -1,3 +1,4 @@
 pytest
 docker
 requests
+python-jenkins
