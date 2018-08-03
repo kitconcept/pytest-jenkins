@@ -112,3 +112,25 @@ def test_can_create_pipeline_job(jenkins):
     jenkins_job = open(jenkins_job_file, 'r').read()
     server.create_job('test', EMPTY_PIPELINE_XML.format(jenkins_job))
     assert 'test' in [job.get('name') for job in server.get_jobs()]
+
+
+def test_can_run_pipeline_job(jenkins):
+    import jenkins
+
+    server = jenkins.Jenkins('http://localhost:8080')
+    for job in server.get_jobs():
+        server.delete_job(job.get('name'))
+
+    current_dir = os.path.dirname(os.path.realpath(__file__))
+    jenkins_job_file = os.path.join(current_dir, 'Jenkinsfile')
+    jenkins_job = open(jenkins_job_file, 'r').read()
+    server.create_job('test', EMPTY_PIPELINE_XML.format(jenkins_job))
+    server.build_job('test')
+    # wait for build to start
+    while server.get_running_builds() == []:
+        time.sleep(1)
+    # wait for build to finish
+    while server.get_running_builds() != []:
+        time.sleep(1)
+
+    assert 'SUCCESS' == server.get_build_info('test', 1).get('result')
