@@ -19,10 +19,10 @@ help: ## This help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
 .PHONY: all
-all: setup
+all: build
 
-.PHONY: setup
-setup: ## Build Jenkins Docker
+.PHONY: build
+build: ## Build Jenkins Docker
 	@echo "$(GREEN)==> Build Jenkins Docker$(RESET)"
 	# docker pull jenkins/jenkins:lts
 	docker build -t pytest-jenkins .
@@ -50,10 +50,10 @@ test: ## Run Robot Tests
 clean: ## Remove old Virtualenv and creates a new one
 	@echo "Clean"
 	rm -rf bin lib include .Python
-	make setup
+	make clean-docker
 
-.PHONY: docker_clean
-docker_clean: ## Delete all docker containers and images
+.PHONY: clean-docker
+clean-docker: ## Delete all docker containers and images
 	# Delete all containers
 	docker rm $(docker ps -a -q) || true
 	# Delete all images

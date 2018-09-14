@@ -1,0 +1,83 @@
+#!groovy
+pipeline {
+    agent {
+        node {
+            label ''
+            customWorkspace '/var/jenkins_home/jobs/robot-tests'
+        }
+    }
+  stages {
+    stage('Build') {
+      steps {
+        sh 'virtualenv .'
+        sh 'bin/pip install robotframework robotframework-seleniumlibrary'
+      }
+    }
+
+    stage('Tests') {
+      parallel {
+        stage('Test 1') {
+          steps {
+            // wrap([$class: 'Xvfb']) {
+              timeout(time: 20, unit: 'MINUTES') {
+                sh 'bin/robot test1.robot'
+              }
+            // }
+          }
+          post {
+            always {
+              stash includes: '*', name: 'test-1'
+            }
+          }
+        }
+        stage('Test 2') {
+          steps {
+            // wrap([$class: 'Xvfb']) {
+              timeout(time: 20, unit: 'MINUTES') {
+                sh 'bin/robot test2.robot'
+              }
+            // }
+          }
+          post {
+            always {
+              stash includes: '*', name: 'test-2'
+            }
+          }
+        }
+      }
+    }
+  }
+
+  post {
+    always {
+
+      unstash 'test-1'
+      sh 'cp output.xml test-1.xml'
+
+      unstash 'test-2'
+      sh 'cp output.xml test-2.xml'
+
+      // install robotframework
+      sh 'virtualenv .'
+      sh 'bin/pip install robotframework'
+
+      // merge reports
+      sh 'bin/rebot --output output.xml *.xml || true'
+
+      // publish reports
+      step([
+        $class: 'RobotPublisher',
+        disableArchiveOutput: false,
+        logFileName: 'log.html',
+        onlyCritical: true,
+        otherFiles: '**/*.png',
+        outputFileName: 'output.xml',
+        outputPath: '.',
+        passThreshold: 100,
+        reportFileName: 'report.html',
+        unstableThreshold: 0
+      ]);
+    }
+  } // post
+
+}

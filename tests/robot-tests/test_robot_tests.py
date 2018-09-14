@@ -133,4 +133,4 @@ def test_can_run_pipeline_job(jenkins):
     jenkins_build_result = server.get_build_info('test', 1).get('result')
     if jenkins_build_result != 'SUCCESS':
         print(server.get_build_console_output('test', 1))
-    assert 'SUCCESS' == server.get_build_info('test', 1).get('result')
+    assert 'SUCCESS' == jenkins_build_result
