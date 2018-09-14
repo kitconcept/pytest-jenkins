@@ -9,40 +9,40 @@ pipeline {
   stages {
     stage('Build') {
       steps {
-        echo 'Run build'
+        sh 'virtualenv .'
+        sh 'bin/pip install robotframework robotframework-seleniumlibrary'
       }
     }
 
-    stage('Test 1') {
-      steps {
-        sh 'virtualenv .'
-        sh 'bin/pip install robotframework robotframework-seleniumlibrary'
-        // wrap([$class: 'Xvfb']) {
-          timeout(time: 20, unit: 'MINUTES') {
-            sh 'bin/robot test1.robot'
+    stage('Tests') {
+      parallel {
+        stage('Test 1') {
+          steps {
+            // wrap([$class: 'Xvfb']) {
+              timeout(time: 20, unit: 'MINUTES') {
+                sh 'bin/robot test1.robot'
+              }
+            // }
           }
-        // }
-      }
-      post {
-        always {
-          stash includes: '*', name: 'test-1'
+          post {
+            always {
+              stash includes: '*', name: 'test-1'
+            }
+          }
         }
-      }
-    }
-
-    stage('Test 2') {
-      steps {
-        sh 'virtualenv .'
-        sh 'bin/pip install robotframework robotframework-seleniumlibrary'
-        // wrap([$class: 'Xvfb']) {
-          timeout(time: 20, unit: 'MINUTES') {
-            sh 'bin/robot test2.robot'
+        stage('Test 2') {
+          steps {
+            // wrap([$class: 'Xvfb']) {
+              timeout(time: 20, unit: 'MINUTES') {
+                sh 'bin/robot test2.robot'
+              }
+            // }
           }
-        // }
-      }
-      post {
-        always {
-          stash includes: '*', name: 'test-2'
+          post {
+            always {
+              stash includes: '*', name: 'test-2'
+            }
+          }
         }
       }
     }
@@ -52,19 +52,14 @@ pipeline {
     always {
 
       unstash 'test-1'
-      sh 'ls -al'
       sh 'cp output.xml test-1.xml'
 
       unstash 'test-2'
-      sh 'ls -al'
       sh 'cp output.xml test-2.xml'
 
       // install robotframework
       sh 'virtualenv .'
       sh 'bin/pip install robotframework'
-
-      // debug
-      sh "ls *.xml"
 
       // merge reports
       sh 'bin/rebot --output output.xml *.xml || true'
