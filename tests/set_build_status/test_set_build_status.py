@@ -112,6 +112,9 @@ def test_build_status_is_failure(jenkins):
     jenkins_job = open(jenkins_job_file, 'r').read()
     server.create_job('test', EMPTY_PIPELINE_XML.format(jenkins_job))
     server.build_job('test')
-    time.sleep(5)
+    # wait for build to complete
+    while server.get_job_info('test').get('lastCompletedBuild') is None:
+        print('.')
+        time.sleep(1)
 
     assert 'FAILURE' == server.get_build_info('test', 1).get('result')
