@@ -127,7 +127,10 @@ def test_can_run_pipeline_job(jenkins):
     server.create_job('test', EMPTY_PIPELINE_XML.format(jenkins_job))
     server.build_job('test')
     # wait for build to complete
-    while server.get_job_info('test').get('lastCompletedBuild') is not None:
+    while server.get_job_info('test').get('lastCompletedBuild') is None:
+        print('.')
         time.sleep(1)
-    time.sleep(5)
+    jenkins_build_result = server.get_build_info('test', 1).get('result')
+    if jenkins_build_result != 'SUCCESS':
+        print(server.get_build_console_output('test', 1))
     assert 'SUCCESS' == server.get_build_info('test', 1).get('result')
