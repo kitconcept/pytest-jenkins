@@ -10,10 +10,10 @@ RUN apt-get install -y python-virtualenv
 RUN useradd automation --shell /bin/bash --create-home
 
 # install chrome
-# RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add
-# RUN echo "deb [arch=amd64]  http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list
-# RUN apt-get -y update
-# RUN apt-get -y install google-chrome-stable
+RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add
+RUN echo "deb [arch=amd64]  http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list
+RUN apt-get -y update
+RUN apt-get -y install google-chrome-stable
 
 # install chromedriver
 RUN wget "http://chromedriver.storage.googleapis.com/2.41/chromedriver_linux64.zip"
@@ -43,12 +43,6 @@ RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-ke
   apt-get -yqq install google-chrome-stable && \
   rm -rf /var/lib/apt/lists/*
 
-# Disable the SUID sandbox so that Chrome can launch without being in a privileged container.
-# One unfortunate side effect is that `google-chrome --help` will no longer work.
-RUN dpkg-divert --add --rename --divert /opt/google/chrome/google-chrome.real /opt/google/chrome/google-chrome && \
-  echo "#!/bin/bash\nexec /opt/google/chrome/google-chrome.real --disable-setuid-sandbox \"\$@\"" > /opt/google/chrome/google-chrome && \
-  chmod 755 /opt/google/chrome/google-chrome
-
 # install jenkins add-ons
 USER jenkins
 RUN /usr/local/bin/install-plugins.sh git workflow-aggregator lockable-resources docker-build-publish parameterized-scheduler robot
@@ -59,13 +53,3 @@ COPY tests/robot-tests/test2.robot  /var/jenkins_home/jobs/robot-tests/test2.rob
 
 USER root
 RUN chown -R jenkins:jenkins  /var/jenkins_home/jobs/robot-tests
-
-# Default configuration
-ENV DISPLAY :20.0
-ENV SCREEN_GEOMETRY "1440x900x24"
-ENV CHROMEDRIVER_PORT 4444
-ENV CHROMEDRIVER_WHITELISTED_IPS "127.0.0.1"
-ENV CHROMEDRIVER_URL_BASE ''
-ENV CHROMEDRIVER_EXTRA_ARGS ''
-
-EXPOSE 4444
